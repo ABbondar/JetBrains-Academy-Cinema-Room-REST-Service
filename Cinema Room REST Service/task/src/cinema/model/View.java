@@ -13,7 +13,6 @@ public class View {
     private int seatsAmount;
     private List<Seat> seats;
 
-
     public View(int rowsAmount, int seatsAmount, List<Seat> seats) {
         this.rowsAmount = rowsAmount;
         this.seatsAmount = seatsAmount;

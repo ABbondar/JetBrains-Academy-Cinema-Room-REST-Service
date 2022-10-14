@@ -9,9 +9,10 @@ public class Seat {
 
     private final int row;
     private final int seat;
+    private int price;
 
     @JsonIgnore
-    private final boolean isBooked;
+    private boolean isBooked;
 
     public int getRow() {
         return row;
@@ -20,5 +21,19 @@ public class Seat {
     @JsonGetter("column")
     public int getSeat() {
         return seat;
+    }
+
+    @JsonGetter("price")
+    public int getPrice() {
+        return price;
+    }
+
+    @JsonIgnore
+    public boolean isBooked() {
+        return isBooked;
+    }
+
+    public void setBooked(boolean booked) {
+        isBooked = booked;
     }
 }

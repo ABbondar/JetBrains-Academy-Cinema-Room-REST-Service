@@ -20,12 +20,28 @@ public class ViewDao {
         return cinema;
     }
 
-    private List<Seat> initCinemaHall() {
+    public List<Seat> initCinemaHall() {
         for (int row = 1; row <= rowsAmount; row++) {
             for (int seat = 1; seat <= seatsAmount; seat++) {
-                availableSeats.add(new Seat(row, seat, false));
+                availableSeats.add(new Seat(row, seat, getPrice(row), false));
             }
         }
         return availableSeats;
+    }
+
+    public ArrayList<Seat> getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public int getPrice(int row) {
+        return row <= 4 ? 10 : 8;
+    }
+
+    public int getRowsAmount() {
+        return rowsAmount;
+    }
+
+    public int getSeatsAmount() {
+        return seatsAmount;
     }
 }
