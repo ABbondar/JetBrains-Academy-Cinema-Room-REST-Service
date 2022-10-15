@@ -1,8 +1,11 @@
 package cinema.controller;
 
-import cinema.dto.models.SeatRequestDto;
-import cinema.dto.models.SeatResponseDto;
+import cinema.dto.models.seat.SeatRequestDto;
+import cinema.dto.models.ticket.TicketResponseDto;
+import cinema.model.Seat;
+import cinema.model.Ticket;
 import cinema.service.SeatService;
+import cinema.service.TicketService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,28 +13,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/purchase")
 @Slf4j
 public class SeatController {
 
     private final SeatService seatService;
+    private final TicketService ticketService;
 
     @Autowired
-    public SeatController(SeatService seatService) {
+    public SeatController(SeatService seatService, TicketService ticketService) {
         this.seatService = seatService;
+        this.ticketService = ticketService;
     }
 
-    @PostMapping
+    @PostMapping("/purchase")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> bookSeat(@RequestBody SeatRequestDto seatRequestDto) {
 
-        seatService.bookSeat(seatRequestDto.getRow(), seatRequestDto.getSeat());
+        Seat seat = seatService.bookSeat(seatRequestDto.getRow(), seatRequestDto.getSeat());
 
-        SeatResponseDto seatResponseDto = new SeatResponseDto(
-                seatRequestDto.getRow(),
-                seatRequestDto.getSeat(),
-                seatService.getPrice(seatRequestDto.getRow()));
-
-        return ResponseEntity.ok().body(seatResponseDto);
+        Ticket ticket = ticketService.bookTicket(seatRequestDto.getRow(), seat);
+        TicketResponseDto ticketResponseDto = new TicketResponseDto(ticket.getToken().getName(), seat);
+        return ResponseEntity.ok().body(ticketResponseDto);
     }
 }

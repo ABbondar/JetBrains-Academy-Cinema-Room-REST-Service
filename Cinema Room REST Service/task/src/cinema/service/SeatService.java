@@ -1,15 +1,15 @@
 package cinema.service;
 
-import org.springframework.stereotype.Service;
+import cinema.model.Seat;
 
-@Service
 public interface SeatService {
 
-    int getPrice(int row);
+    boolean isSeatValid(int row, int seat);
 
-    void bookSeat(int row, int seat);
+    boolean isSeatAvailable(int row, int seat);
 
-    boolean isAvailable(int row, int seat);
+    Seat bookSeat(int row, int seat);
 
-    boolean isSeatValid (int row, int seat);
+    int getSeatPrice(int row);
+
 }
