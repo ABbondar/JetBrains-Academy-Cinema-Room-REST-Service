@@ -297,6 +297,472 @@ files:
         };
     }
   learner_created: false
+- name: src/cinema/service/SeatService.java
+  visible: true
+  text: |-
+    package cinema.service;
+
+    import org.springframework.stereotype.Service;
+
+    @Service
+    public interface SeatService {
+
+        int getPrice(int row);
+
+        void bookSeat(int row, int seat);
+
+        boolean isAvailable(int row, int seat);
+
+        boolean isSeatValid (int row, int seat);
+    }
+  learner_created: true
+- name: src/cinema/exception/GlobalExceptionHandler.java
+  visible: true
+  text: |-
+    package cinema.exception;
+
+    import cinema.dto.exceptions.ExceptionDto;
+    import lombok.extern.slf4j.Slf4j;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.web.bind.annotation.ExceptionHandler;
+    import org.springframework.web.bind.annotation.RestControllerAdvice;
+    import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+    import java.time.LocalDateTime;
+
+    @Slf4j
+    @RestControllerAdvice
+    public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+        @ExceptionHandler(NotAvailableSeatException.class)
+        public ResponseEntity<ExceptionDto> handleNotAvailableSeatException(NotAvailableSeatException ex) {
+
+            log.error("Handler 'NotAvailableSeatException' catch 'NotAvailableSeatException'");
+            ExceptionDto exception = new ExceptionDto(ex.getMessage());
+
+            ExceptionDto e = new ExceptionDto(
+                    LocalDateTime.now(),
+                    ex.getMessage(),
+                    HttpStatus.BAD_REQUEST.value()
+            );
+
+            return new ResponseEntity<>(exception, HttpStatus.BAD_REQUEST);
+        }
+
+        @ExceptionHandler(OutOfBoundException.class)
+        public ResponseEntity<ExceptionDto> handleOutOfBoundException(OutOfBoundException ex) {
+
+            log.error("Handler 'OutOfBoundException' catch 'OutOfBoundException'");
+            ExceptionDto exception = new ExceptionDto(ex.getMessage());
+
+            ExceptionDto e = new ExceptionDto(
+                    LocalDateTime.now(),
+                    ex.getMessage(),
+                    HttpStatus.BAD_REQUEST.value()
+            );
+
+            return new ResponseEntity<>(exception, HttpStatus.BAD_REQUEST);
+        }
+    }
+  learner_created: true
+- name: src/cinema/service/impl/SeatServiceImpl.java
+  visible: true
+  text: |-
+    package cinema.service.impl;
+
+    import cinema.dao.ViewDao;
+    import cinema.exception.NotAvailableSeatException;
+    import cinema.exception.OutOfBoundException;
+    import cinema.model.Seat;
+    import cinema.service.SeatService;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.stereotype.Service;
+
+    import java.util.List;
+
+    @Service
+    public class SeatServiceImpl implements SeatService {
+
+        private final ViewDao viewDao;
+
+        @Autowired
+        public SeatServiceImpl(ViewDao viewDao) {
+            this.viewDao = viewDao;
+        }
+
+        @Override
+        public int getPrice(int row) {
+            return row <= 4 ? 10 : 8;
+        }
+
+        @Override
+        public void bookSeat(int row, int seat) {
+
+            if (!isAvailable(row, seat)) {
+                throw new NotAvailableSeatException("The ticket has been already purchased!");
+            }
+
+            if (!isSeatValid(row, seat)) {
+                throw new OutOfBoundException("The number of a row or a column is out of bounds!");
+            }
+
+            List<Seat> seats = viewDao.getCinema().getSeats();
+            for (Seat s : seats) {
+                if (s.getRow() == row && s.getSeat() == seat) {
+                    s.setBooked(true);
+                }
+            }
+        }
+
+        @Override
+        public boolean isAvailable(int row, int seat) {
+            List<Seat> cinema = viewDao.getAvailableSeats();
+            for (Seat s : cinema) {
+                if (s.getRow() == row && s.getSeat() == seat && s.isBooked()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public boolean isSeatValid(int row, int seat) {
+            return row <= viewDao.getRowsAmount() && seat <= viewDao.getSeatsAmount() && row > 0 && seat > 0;
+        }
+    }
+  learner_created: true
+- name: src/cinema/exception/NotAvailableSeatException.java
+  visible: true
+  text: |-
+    package cinema.exception;
+
+    public class NotAvailableSeatException extends RuntimeException {
+        public NotAvailableSeatException(String message) {
+            super(message);
+        }
+    }
+  learner_created: true
+- name: src/cinema/controller/SeatController.java
+  visible: true
+  text: |-
+    package cinema.controller;
+
+    import cinema.dto.models.SeatRequestDto;
+    import cinema.dto.models.SeatResponseDto;
+    import cinema.service.SeatService;
+    import lombok.extern.slf4j.Slf4j;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.web.bind.annotation.*;
+
+    @RestController
+    @RequestMapping("/purchase")
+    @Slf4j
+    public class SeatController {
+
+        private final SeatService seatService;
+
+        @Autowired
+        public SeatController(SeatService seatService) {
+            this.seatService = seatService;
+        }
+
+        @PostMapping
+        @ResponseStatus(HttpStatus.CREATED)
+        public ResponseEntity<?> bookSeat(@RequestBody SeatRequestDto seatRequestDto) {
+
+            seatService.bookSeat(seatRequestDto.getRow(), seatRequestDto.getSeat());
+
+            SeatResponseDto seatResponseDto = new SeatResponseDto(
+                    seatRequestDto.getRow(),
+                    seatRequestDto.getSeat(),
+                    seatService.getPrice(seatRequestDto.getRow()));
+
+            return ResponseEntity.ok().body(seatResponseDto);
+        }
+    }
+  learner_created: true
+- name: src/cinema/model/Ticket.java
+  visible: true
+  learner_created: true
+- name: src/cinema/dao/CinemaDao.java
+  visible: true
+  learner_created: true
+- name: src/cinema/exception/NotValidSeatException.java
+  visible: true
+  text: |-
+    package cinema.exception;
+
+    public class OutOfBoundException extends RuntimeException {
+        public OutOfBoundException(String message) {
+            super(message);
+        }
+    }
+  learner_created: true
+- name: src/cinema/service/CinemaService.java
+  visible: true
+  text: |-
+    package cinema.service;
+
+    import cinema.model.View;
+
+    public interface ViewService {
+        View getCinema();
+    }
+  learner_created: true
+- name: src/cinema/service/impl/CinemaServiceImpl.java
+  visible: true
+  text: |-
+    package cinema.service.impl;
+
+    import cinema.dao.ViewDao;
+    import cinema.model.View;
+    import cinema.service.ViewService;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.stereotype.Service;
+
+    @Service
+    public class ViewServiceImpl implements ViewService {
+
+        private final ViewDao viewDao;
+
+        @Autowired
+        public ViewServiceImpl(ViewDao viewDao) {
+            this.viewDao = viewDao;
+        }
+
+        @Override
+        public View getCinema() {
+            return viewDao.getCinema();
+        }
+    }
+  learner_created: true
+- name: src/cinema/dto/models/seat/SeatDto.java
+  visible: true
+  text: |-
+    package cinema.dto.models;
+
+    import lombok.AllArgsConstructor;
+    import lombok.Getter;
+    import lombok.NoArgsConstructor;
+    import lombok.Setter;
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public class SeatDto {
+
+        private int row;
+        private int seat;
+        private int price;
+
+    }
+  learner_created: true
+- name: src/cinema/dto/models/seat/SeatRequestDto.java
+  visible: true
+  text: |
+    package cinema.dto.models;
+
+    import com.fasterxml.jackson.annotation.JsonProperty;
+    import lombok.Data;
+    import lombok.Getter;
+    import lombok.NoArgsConstructor;
+    import lombok.Setter;
+
+    @Data
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public class SeatRequestDto {
+
+        private int row;
+
+        @JsonProperty("column")
+        private int seat;
+    }
+  learner_created: true
+- name: src/cinema/dto/models/seat/SeatResponseDto.java
+  visible: true
+  text: |-
+    package cinema.dto.models;
+
+    import com.fasterxml.jackson.annotation.JsonProperty;
+    import lombok.*;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public class SeatResponseDto {
+
+        @JsonProperty("row")
+        private int row;
+
+        @JsonProperty("column")
+        private int seat;
+
+        @JsonProperty("price")
+        private int price;
+
+    }
+  learner_created: true
+- name: src/cinema/dto/exception/ExceptionDto.java
+  visible: true
+  text: |-
+    package cinema.dto.exceptions;
+
+    import com.fasterxml.jackson.annotation.JsonFormat;
+    import com.fasterxml.jackson.annotation.JsonIgnore;
+    import lombok.Data;
+
+    import java.time.LocalDateTime;
+
+    @Data
+    public class ExceptionDto {
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
+        @JsonIgnore
+        private LocalDateTime timestamp;
+        private int status;
+        private String error;
+
+        public ExceptionDto(String error) {
+            this.error = error;
+        }
+
+        public ExceptionDto(LocalDateTime timestamp, String error, int status) {
+            this.timestamp = timestamp;
+            this.status = status;
+            this.error = error;
+        }
+
+        @JsonIgnore
+        public LocalDateTime getTimestamp() {
+            return timestamp;
+        }
+
+        @JsonIgnore
+        public int getStatus() {
+            return status;
+        }
+    }
+  learner_created: true
+- name: src/cinema/controller/CinemaController.java
+  visible: true
+  text: |-
+    package cinema.controller;
+
+    import cinema.model.View;
+    import cinema.service.ViewService;
+    import lombok.extern.slf4j.Slf4j;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.*;
+
+    @RestController
+    @RequestMapping("/seats")
+    @Slf4j
+    public class ViewController {
+
+        private final ViewService viewService;
+
+        @Autowired
+        public ViewController(ViewService viewService) {
+            this.viewService = viewService;
+        }
+
+        @GetMapping
+        @ResponseStatus(HttpStatus.OK)
+        public View getCinema() {
+            return viewService.getCinema();
+        }
+    }
+  learner_created: true
+- name: src/cinema/dao/impl/CinemaDaoImpl.java
+  visible: true
+  text: |-
+    package cinema.dao;
+
+    import cinema.model.Seat;
+    import cinema.model.View;
+    import org.springframework.stereotype.Repository;
+
+    import java.util.ArrayList;
+    import java.util.List;
+
+    @Repository
+    public class ViewDao {
+
+        private final int rowsAmount = 9;
+        private final int seatsAmount = 9;
+        private final ArrayList<Seat> availableSeats = new ArrayList<>();
+
+        private final View cinema = new View(rowsAmount, seatsAmount, initCinemaHall());
+
+        public View getCinema() {
+            return cinema;
+        }
+
+        public List<Seat> initCinemaHall() {
+            for (int row = 1; row <= rowsAmount; row++) {
+                for (int seat = 1; seat <= seatsAmount; seat++) {
+                    availableSeats.add(new Seat(row, seat, getPrice(row), false));
+                }
+            }
+            return availableSeats;
+        }
+
+        public ArrayList<Seat> getAvailableSeats() {
+            return availableSeats;
+        }
+
+        public int getPrice(int row) {
+            return row <= 4 ? 10 : 8;
+        }
+
+        public int getRowsAmount() {
+            return rowsAmount;
+        }
+
+        public int getSeatsAmount() {
+            return seatsAmount;
+        }
+    }
+  learner_created: true
+- name: src/cinema/dao/TicketDao.java
+  visible: true
+  learner_created: true
+- name: src/cinema/dao/impl/TicketDaoImpl.java
+  visible: true
+  learner_created: true
+- name: src/cinema/service/TicketService.java
+  visible: true
+  learner_created: true
+- name: src/cinema/service/impl/TicketServiceImpl.java
+  visible: true
+  learner_created: true
+- name: src/cinema/model/Token.java
+  visible: true
+  learner_created: true
+- name: src/cinema/controller/TicketController.java
+  visible: true
+  learner_created: true
+- name: src/cinema/exception/NotValidTokenException.java
+  visible: true
+  learner_created: true
+- name: src/cinema/dto/models/ticket/TicketResponseDto.java
+  visible: true
+  learner_created: true
+- name: src/cinema/dto/models/ticket/TicketReturnedDto.java
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/13377#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Sat, 15 Oct 2022 19:14:59 UTC
 record: -1

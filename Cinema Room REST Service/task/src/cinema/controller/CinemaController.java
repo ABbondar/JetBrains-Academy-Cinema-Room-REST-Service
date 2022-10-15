@@ -1,7 +1,7 @@
 package cinema.controller;
 
-import cinema.model.View;
-import cinema.service.ViewService;
+import cinema.model.Cinema;
+import cinema.service.CinemaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,18 +10,18 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/seats")
 @Slf4j
-public class ViewController {
+public class CinemaController {
 
-    private final ViewService viewService;
+    private final CinemaService cinemaService;
 
     @Autowired
-    public ViewController(ViewService viewService) {
-        this.viewService = viewService;
+    public CinemaController(CinemaService cinemaService) {
+        this.cinemaService = cinemaService;
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public View getCinema() {
-        return viewService.getCinema();
+    public Cinema getCinema() {
+        return cinemaService.getCinema();
     }
 }

@@ -7,13 +7,13 @@ import java.util.List;
 
 @NoArgsConstructor
 @ToString
-public class View {
+public class Cinema {
 
     private int rowsAmount;
     private int seatsAmount;
     private List<Seat> seats;
 
-    public View(int rowsAmount, int seatsAmount, List<Seat> seats) {
+    public Cinema(int rowsAmount, int seatsAmount, List<Seat> seats) {
         this.rowsAmount = rowsAmount;
         this.seatsAmount = seatsAmount;
         this.seats = seats;

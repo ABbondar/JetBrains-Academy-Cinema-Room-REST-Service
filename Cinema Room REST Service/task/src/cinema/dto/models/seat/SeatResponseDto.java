@@ -1,4 +1,4 @@
-package cinema.dto.models;
+package cinema.dto.models.seat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
