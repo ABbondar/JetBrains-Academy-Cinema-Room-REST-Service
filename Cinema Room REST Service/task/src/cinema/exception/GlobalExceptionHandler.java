@@ -58,4 +58,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(exception, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(NotValidPasswordKeyException.class)
+    public ResponseEntity<ExceptionDto> handleNotValidPasswordKeyException(NotValidPasswordKeyException ex) {
+
+        log.error("Handler 'NotValidPasswordKeyException' catch 'NotValidPasswordKeyException'");
+        ExceptionDto exception = new ExceptionDto(ex.getMessage());
+
+        ExceptionDto e = new ExceptionDto(
+                LocalDateTime.now(),
+                ex.getMessage(),
+                HttpStatus.UNAUTHORIZED.value()
+        );
+
+        return new ResponseEntity<>(exception, HttpStatus.UNAUTHORIZED);
+    }
 }

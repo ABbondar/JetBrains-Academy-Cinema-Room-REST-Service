@@ -80,6 +80,7 @@ public class TicketServiceImpl implements TicketService {
     public Seat returnTicket(Token token) {
         Ticket ticket = getTicketByToken(token);
         ticket.getToken().setValid(false);
+        ticket.getSeat().setBooked(false);
         return getSeatByToken(token);
     }
 
