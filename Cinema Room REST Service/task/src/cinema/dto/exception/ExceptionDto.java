@@ -12,10 +12,17 @@ public class ExceptionDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     @JsonIgnore
     private LocalDateTime timestamp;
+
+    @JsonIgnore
     private int status;
     private String error;
 
     public ExceptionDto(String error) {
+        this.error = error;
+    }
+
+    public ExceptionDto(int status, String error) {
+        this.status = status;
         this.error = error;
     }
 
